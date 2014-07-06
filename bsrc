@@ -1,0 +1,13 @@
+<all>
+<banlancelist> 
+<item name="中国" id="22" date="" desc="" init="" />
+</banlancelist>
+<typelist>
+<type name="啊啊" id="34" />
+</typelist>
+<recordlist>
+<rec date="20140101" type="34" desc="我爱">
+    <item banlance="22" num="-1000" />
+</rec>
+</recordlist>
+</all>
