@@ -148,9 +148,15 @@ def list_cmd(cmdlist):
         print("detaillist :")
         for  rec in listRecs:
             tstr = ""
-            for k in rec:
-                tstr += rec[k]
-                tstr += "\t"
+            tsum = 0
+            for k in dictBanlanceList:
+                if rec.get(k) is None:
+                    tstr += "0\t"
+                else :
+                    tstr += rec[k]
+                    tstr += "\t"
+                    tsum += int(rec[k])
+            tstr += str(tsum)
             print(tstr)
     print("list")
 #list_cmd
