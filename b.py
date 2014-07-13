@@ -53,7 +53,7 @@ class Record:
 #Record
         
 def wait():
-    cmd = input("请输入命令:\n")
+    cmd = raw_input("请输入命令:\n")
     return cmd
 #wait
 
