@@ -1,6 +1,6 @@
 <all>
 <banlancelist> 
-<item name="中国" id="22" date="" desc="" init="" />
+<item name="中国" id="22" date="" desc="" initnum="0" />
 </banlancelist>
 <typelist>
 <type name="啊啊" id="34" />
