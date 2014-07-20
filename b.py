@@ -1,5 +1,6 @@
 #encoding=utf-8
 from xml.etree import ElementTree as ET
+import time
 
 
 
@@ -10,37 +11,10 @@ from xml.etree import ElementTree as ET
 #4、可以按时间显示每个帐号的余额和总额的余额
 #5、有不列入总账的项目
 #6、保存文件格式：
-'''
-<all>
-<banlancelist>   账户列表
-<item name="" id="" />
-</banlancelist>
-<typelist>
-<type name="" id="">
-</typelist>
-账户初始值
-<banlanceinit>
-<item id="" desc= />
-</banlanceinit>
-流水记录
-<recordlist>
-单笔流水
-<rec date="" type="" desc="">包含所有的流水
-    <item banlance="" num="" />
-</rec>
-</recordlist>
-</all>
-命令列表
-open filename
-save [new]
-close
-add banlance name id  date initnum 
-add rec date type desc banlance,num  ...
-list all
-list banlance
-list sum
-list file
-'''
+#feature list:
+#1、可以展示一段时间内的流水信息
+#2、可以计算单项和总额的和
+
 print("This is banlance\n")
 
 #每条账户的类
@@ -97,6 +71,15 @@ def open_cmd(cmdlist):
     print(listRecs)
 #open_cmd
 
+def changelog(msg):
+    log_et = ET.Element('log')
+    log_et.set("time",time.strftime('%Y%m%d%H%M%S',time.localtime(time.time())))
+    log_et.set("msg",msg)
+    changelog_et = xmlfile.find("changelog")
+    changelog_et.append(log_et)
+
+#changelog
+    
 def save_cmd(cmdlist):
     if len(cmdlist) == 2:
         xmlfile.write(cmdlist[1])
@@ -109,6 +92,9 @@ def add_cmd(cmdlist):
     print("add")
     if "rec" == cmdlist[1]:
         #add rec date type desc banlance,num  ..
+        if dictTypeList.get(cmdlist[3]) is None:
+            print("typeerr:"+cmdlist[3])
+            return
         rec = ET.Element('rec')
         rec.set("date",cmdlist[2])
         rec.set("type",cmdlist[3])
@@ -143,11 +129,29 @@ def list_cmd(cmdlist):
     print(cmdlist[1])
     if "all" == cmdlist[1]:
         #全部展示
-        print("now has these banlances:")
-        print(dictBanlanceList)
-        print("detaillist :")
+        #print("now has these banlances:")
+        #print(dictBanlanceList)
+        #print("detaillist :")
+        bstr = ""
+        for ban in dictBanlanceList:
+            bstr += dictBanlanceList[ban]+"\t"
+
+        #表头
+        print("日期\t类型\t备注\t"+bstr+"总计")
+
+        singleBanSum = {}
+        initnumstr = ""
+        for elem in xmlfile.iterfind('banlancelist/item'):
+            singleBanSum[elem.get("id")] = int(elem.get("initnum"))
+            initnumstr += elem.get("initnum")+"\t"
+
+        #初始值
+        print("\t初始\t\t"+initnumstr)
+        
         for  rec in listRecs:
-            tstr = ""
+            tstr = rec["date"]+"\t"
+            tstr += dictTypeList[rec["type"]]+"\t"
+            tstr += rec["desc"]+"\t"
             tsum = 0
             for k in dictBanlanceList:
                 if rec.get(k) is None:
@@ -156,10 +160,54 @@ def list_cmd(cmdlist):
                     tstr += rec[k]
                     tstr += "\t"
                     tsum += int(rec[k])
+                    singleBanSum[k] += int(rec[k])
             tstr += str(tsum)
             print(tstr)
-    print("list")
+
+        sumnumstr = "\t\t\t"
+        for elem in xmlfile.iterfind('banlancelist/item'):
+            if singleBanSum.get(elem.get("id")) is None:
+                sumnumstr += "0\t"
+            else :
+                sumnumstr += str(singleBanSum.get(elem.get("id")))+"\t"
+        #单项总计
+        print(sumnumstr)
+    #print("list")
 #list_cmd
+
+def help_cmd(cmdlist):
+    helpstr = '''
+<all>
+<banlancelist>   账户列表
+<item name="" id="" initnum="" desc=""  date="" />
+</banlancelist>
+<typelist>
+<type name="" id="">
+</typelist>
+流水记录
+<recordlist>
+单笔流水
+<rec  date="" type="" desc="">包含所有的流水
+    <item banlance="" num="" />
+</rec>
+</recordlist>
+<changelog>
+    <log msg="" time=""/>
+</changelog>
+</all>
+命令列表
+open filename
+save [new]
+close
+add banlance name id  date initnum 
+add rec date type desc banlance,num  ...
+list all
+list banlance
+list sum
+list file
+'''
+    print(helpstr)
+#help_cmd
 
 def main_process():
     while True:
@@ -168,13 +216,17 @@ def main_process():
         if "close" == cmd :
             break
         elif "add" == cmdlist[0] :
+            changelog(cmd)
             add_cmd(cmdlist)
         elif "save" == cmdlist[0] :
+            changelog(cmd)
             save_cmd(cmdlist)
         elif "open" == cmdlist[0] :
             open_cmd(cmdlist)
         elif "list" == cmdlist[0] :
             list_cmd(cmdlist)
+        elif "help" == cmdlist[0] :
+            help_cmd(cmdlist)
         else:
             print(cmd);
             continue
