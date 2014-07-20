@@ -1,6 +1,7 @@
 #encoding=utf-8
 from xml.etree import ElementTree as ET
 import time
+import sys
 
 
 
@@ -25,9 +26,14 @@ class Record:
         self.desc = ""
         self.detail = {}
 #Record
-        
+
+def input_wrap(str):
+    if sys.version_info>(3,0):
+        return input(str)
+    else :
+        return raw_input(str)
 def wait():
-    cmd = raw_input("请输入命令:\n")
+    cmd = input_wrap("请输入命令:\n")
     return cmd
 #wait
 
@@ -133,48 +139,87 @@ def list_cmd(cmdlist):
         #print(dictBanlanceList)
         #print("detaillist :")
         bstr = ""
+        outputd = []
+        traw=[]
+        traw.append("日期")
+        traw.append("类型")
+        traw.append("备注")
         for ban in dictBanlanceList:
             bstr += dictBanlanceList[ban]+"\t"
-
+            traw.append(dictBanlanceList[ban])
+        traw.append("总计")
         #表头
-        print("日期\t类型\t备注\t"+bstr+"总计")
+        outputd.append(traw.copy())
+        traw.clear()
+        #print("日期\t类型\t备注\t"+bstr+"总计")
 
         singleBanSum = {}
         initnumstr = ""
+        traw.append("")
+        traw.append("初始")
+        traw.append("")
         for elem in xmlfile.iterfind('banlancelist/item'):
-            singleBanSum[elem.get("id")] = int(elem.get("initnum"))
+            singleBanSum[elem.get("id")] = float(elem.get("initnum"))
             initnumstr += elem.get("initnum")+"\t"
+            traw.append(elem.get("initnum"))
 
         #初始值
-        print("\t初始\t\t"+initnumstr)
+        #print("\t初始\t\t"+initnumstr)
+        outputd.append(traw.copy())
+        traw.clear()
         
         for  rec in listRecs:
             tstr = rec["date"]+"\t"
             tstr += dictTypeList[rec["type"]]+"\t"
             tstr += rec["desc"]+"\t"
+            traw.append(rec["date"])
+            traw.append(dictTypeList[rec["type"]])
+            traw.append(rec["desc"])
             tsum = 0
             for k in dictBanlanceList:
                 if rec.get(k) is None:
                     tstr += "0\t"
+                    traw.append("0")
                 else :
                     tstr += rec[k]
                     tstr += "\t"
-                    tsum += int(rec[k])
-                    singleBanSum[k] += int(rec[k])
+                    tsum += float(rec[k])
+                    traw.append(rec[k])
+                    singleBanSum[k] += float(rec[k])
             tstr += str(tsum)
-            print(tstr)
+            #print(tstr)
+            traw.append(str(tsum))
+        outputd.append(traw.copy())
+        traw.clear()
 
         sumnumstr = "\t\t\t"
+        traw.append("")
+        traw.append("")
+        traw.append("")
         for elem in xmlfile.iterfind('banlancelist/item'):
             if singleBanSum.get(elem.get("id")) is None:
                 sumnumstr += "0\t"
+                traw.append("0")
             else :
                 sumnumstr += str(singleBanSum.get(elem.get("id")))+"\t"
+                traw.append(str(singleBanSum.get(elem.get("id"))))
         #单项总计
-        print(sumnumstr)
+        #print(sumnumstr)
+        outputd.append(traw.copy())
+        traw.clear()
+        print_list(outputd)
     #print("list")
 #list_cmd
 
+def print_list(data):
+    #print(data)
+    for raw in data:
+        for ceil in raw:
+            #print(raw)
+            print("{0:10}".format(ceil),end="|")
+        print("",end="\n")
+#print_list
+        
 def help_cmd(cmdlist):
     helpstr = '''
 <all>
